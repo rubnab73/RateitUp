@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Topic;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
+class TopicController extends Controller
+{
+    public function __construct()
+    {
+        // Apply auth middleware to all except index and show
+        $this->middleware('auth')->except(['index', 'show']);
+    }
+
+    public function index()
+    {
+        $search = request('search');
+        $category = request('category');
+        $sort = request('sort', 'newest');
+
+        $query = Topic::withCount('reviews')
+            ->with(['reviews' => fn($q) => $q->select('id', 'topic_id', 'rating')]);
+
+        if ($search) {
+            $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")
+                                        ->orWhere('category', 'like', "%{$search}%"));
+        }
+
+        if ($category) $query->where('category', $category);
+
+        if ($sort === 'most_reviewed') $query->orderByDesc('reviews_count');
+        elseif ($sort === 'highest_rated') $query->withAvg('reviews', 'rating')->orderByDesc('reviews_avg_rating');
+        else $query->latest();
+
+        $topics = $query->paginate(9)->withQueryString();
+
+        return view('topics.index', compact('topics', 'search', 'category', 'sort'));
+    }
+
+    public function create() { return view('topics.create'); }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        $path = $request->file('image')?->store('topics', 'public');
+
+        $topic = Topic::create([
+            'user_id' => Auth::id(),
+            'title' => $validated['title'],
+            'category' => $validated['category'],
+            'description' => $validated['description'] ?? null,
+            'image' => $path,
+        ]);
+
+        return redirect()->route('topics.show', $topic)->with('status', 'Topic created successfully.');
+    }
+
+    public function show(Topic $topic)
+    {
+        $topic->load(['user', 'reviews.user', 'reviews.comments.user']);
+        $averageRating = $topic->averageRating();
+        return view('topics.show', compact('topic', 'averageRating'));
+    }
+
+    public function edit(Topic $topic)
+    {
+        $this->authorize('update', $topic);
+        return view('topics.edit', compact('topic'));
+    }
+
+    public function update(Request $request, Topic $topic)
+    {
+        $this->authorize('update', $topic);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($topic->image) Storage::disk('public')->delete($topic->image);
+            $topic->image = $request->file('image')->store('topics', 'public');
+        }
+
+        $topic->update([
+            'title' => $validated['title'],
+            'category' => $validated['category'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return redirect()->route('topics.show', $topic)->with('status', 'Topic updated successfully.');
+    }
+
+    public function destroy(Topic $topic)
+    {
+        $this->authorize('delete', $topic);
+        if ($topic->image) Storage::disk('public')->delete($topic->image);
+        $topic->delete();
+
+        return redirect()->route('topics.index')->with('status', 'Topic deleted successfully.');
+    }
+}
