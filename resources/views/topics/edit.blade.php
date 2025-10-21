@@ -28,8 +28,11 @@
                     @error('description')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Content (Detailed Information)</label>
-                    <textarea name="content" rows="8" class="form-control">{{ old('content', $topic->content) }}</textarea>
+                    <x-rich-editor
+                        name="content"
+                        label="Content (Detailed Information)"
+                        :value="old('content', $topic->content)"
+                    />
                     @error('content')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
@@ -41,15 +44,10 @@
                     </select>
                     @error('status')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Image</label>
-                    @if($topic->image)
-                        <div class="mb-2">
-                            <img src="{{ asset('storage/'.$topic->image) }}" alt="{{ $topic->title }}" class="img-fluid rounded" style="max-height: 150px;">
-                        </div>
-                    @endif
-                    <input type="file" name="image" class="form-control">
-                    @error('image')<div class="text-danger small">{{ $message }}</div>@enderror
+                <div class="mb-4">
+                    <label class="form-label">Images</label>
+                    <x-image-gallery :images="$topic->images" :editable="true" />
+                    @error('images')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary">Save</button>

@@ -61,6 +61,9 @@ Route::resource('tags', TagController::class);
 Route::post('/topics/{topic}/tags', [TagController::class, 'attachTag'])->name('topics.tags.attach');
 Route::delete('/topics/{topic}/tags/{tag}', [TagController::class, 'detachTag'])->name('topics.tags.detach');
 
+// Image Management
+
+
 // --------------------
 // Admin Routes
 // --------------------

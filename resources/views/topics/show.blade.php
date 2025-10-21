@@ -26,10 +26,28 @@
             <div class="row g-4">
                 <!-- Left Column: Image & Info -->
                 <div class="col-lg-4">
-                    @if($topic->image)
-                        <div class="mb-3">
-                            <img src="{{ asset('storage/'.$topic->image) }}" class="img-fluid rounded shadow-sm" alt="{{ $topic->title }}">
-                        </div>
+                    @if($topic->images->isNotEmpty())
+                        <!-- Featured Image -->
+                        @if($featuredImage = $topic->images->where('order', 1)->first())
+                            <div class="mb-3">
+                                <img src="{{ asset('storage/'.$featuredImage->path) }}" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     alt="{{ $featuredImage->alt_text ?? $topic->title }}">
+                            </div>
+                        @endif
+
+                        <!-- Additional Images -->
+                        @if($topic->images->where('order', '>', 1)->isNotEmpty())
+                            <div class="row g-2 mb-3">
+                                @foreach($topic->images->where('order', '>', 1) as $image)
+                                    <div class="col-6">
+                                        <img src="{{ asset('storage/'.$image->path) }}" 
+                                             class="img-fluid rounded shadow-sm" 
+                                             alt="{{ $image->alt_text ?? $topic->title }}">
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     @endif
                     <div class="p-3 bg-light rounded shadow-sm">
                         <p class="mb-2"><strong>Category:</strong> <span class="text-secondary">{{ ucfirst($topic->category) }}</span></p>
@@ -51,11 +69,52 @@
                     @if($topic->content)
                     <div class="mb-4 p-3 bg-white rounded shadow-sm">
                         <h5 class="mb-3 font-weight-bold">Content</h5>
-                        <div class="content-area">
-                            {!! nl2br(e($topic->content)) !!}
+                        <div class="content-area rich-content">
+                            {!! $topic->content !!}
                         </div>
                     </div>
                     @endif
+
+                    @push('styles')
+                    <style>
+                        .rich-content {
+                            font-size: 1.1rem;
+                            line-height: 1.6;
+                        }
+                        .rich-content img {
+                            max-width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            margin: 1rem 0;
+                        }
+                        .rich-content blockquote {
+                            border-left: 4px solid #667eea;
+                            padding-left: 1rem;
+                            margin: 1rem 0;
+                            color: #4a5568;
+                        }
+                        .rich-content pre {
+                            background: #2d3748;
+                            color: #e2e8f0;
+                            padding: 1rem;
+                            border-radius: 8px;
+                            overflow-x: auto;
+                        }
+                        .rich-content table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 1rem 0;
+                        }
+                        .rich-content th,
+                        .rich-content td {
+                            border: 1px solid #e2e8f0;
+                            padding: 0.5rem;
+                        }
+                        .rich-content th {
+                            background: #f7fafc;
+                        }
+                    </style>
+                    @endpush
 
                     <!-- Status Badge -->
                     @if($topic->status !== 'published')

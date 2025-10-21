@@ -13,8 +13,8 @@ class Topic extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'title', 'category', 'description', 'content', 'image',
-        'status', 'is_featured', 'view_count',
+        'user_id', 'title', 'category', 'description', 'content',
+        'status', 'is_featured', 'view_count', 'image'
     ];
 
     public function user(): BelongsTo

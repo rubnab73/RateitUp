@@ -94,8 +94,6 @@ class TopicController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $path = $request->file('image')?->store('topics', 'public');
-
         $topic = Topic::create([
             'user_id' => Auth::id(),
             'title' => $validated['title'],
@@ -103,8 +101,13 @@ class TopicController extends Controller
             'description' => $validated['description'] ?? null,
             'content' => $validated['content'] ?? null,
             'status' => $validated['status'],
-            'image' => $path,
         ]);
+
+        if ($request->hasFile('image')) {
+            $filename = time() . '_' . $request->file('image')->getClientOriginalName();
+            $topic->image = $request->file('image')->storeAs('topics', $filename, 'public');
+            $topic->save();
+        }
 
         return redirect()->route('topics.show', $topic)->with('status', 'Topic created successfully.');
     }
