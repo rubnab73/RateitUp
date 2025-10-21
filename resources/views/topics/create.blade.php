@@ -22,9 +22,22 @@
                     @error('category')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Description</label>
+                    <label class="form-label">Description (Brief Summary)</label>
                     <textarea name="description" rows="4" class="form-control">{{ old('description') }}</textarea>
                     @error('description')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Content (Detailed Information)</label>
+                    <textarea name="content" rows="8" class="form-control">{{ old('content') }}</textarea>
+                    @error('content')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="draft" @selected(old('status')==='draft')>Draft</option>
+                        <option value="published" @selected(old('status')==='published')>Published</option>
+                    </select>
+                    @error('status')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Image</label>

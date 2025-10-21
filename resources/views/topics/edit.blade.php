@@ -6,7 +6,7 @@
         <div class="container">
             <form method="POST" action="{{ route('topics.update', $topic) }}" enctype="multipart/form-data" class="card p-3">
                 @csrf
-                @method('PUT')
+                @method('PATCH')
                 <div class="mb-3">
                     <label class="form-label">Title</label>
                     <input name="title" value="{{ old('title', $topic->title) }}" class="form-control" required>
@@ -23,9 +23,23 @@
                     @error('category')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Description</label>
+                    <label class="form-label">Description (Brief Summary)</label>
                     <textarea name="description" rows="4" class="form-control">{{ old('description', $topic->description) }}</textarea>
                     @error('description')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Content (Detailed Information)</label>
+                    <textarea name="content" rows="8" class="form-control">{{ old('content', $topic->content) }}</textarea>
+                    @error('content')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="draft" @selected(old('status', $topic->status)==='draft')>Draft</option>
+                        <option value="published" @selected(old('status', $topic->status)==='published')>Published</option>
+                        <option value="archived" @selected(old('status', $topic->status)==='archived')>Archived</option>
+                    </select>
+                    @error('status')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Image</label>
