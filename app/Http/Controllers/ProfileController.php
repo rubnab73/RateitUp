@@ -16,9 +16,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+        $expertiseLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+        $categories = ['Technology', 'Movies', 'Books', 'Music', 'Food', 'Travel', 'Sports', 'Gaming', 'Other'];
+        
+        return view('profile.edit', compact('user', 'expertiseLevels', 'categories'));
     }
 
     /**
@@ -26,13 +28,31 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $validated['avatar'] = $path;
         }
 
-        $request->user()->save();
+        $validated['expertise_categories'] = $request->expertise_categories ?? [];
+        $validated['social_links'] = [
+            'twitter' => $request->twitter_url,
+            'linkedin' => $request->linkedin_url,
+            'github' => $request->github_url,
+        ];
+
+        $user->fill($validated);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

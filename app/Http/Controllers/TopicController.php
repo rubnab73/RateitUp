@@ -20,22 +20,53 @@ class TopicController extends Controller
         $search = request('search');
         $category = request('category');
         $sort = request('sort', 'newest');
+        $rating = request('rating');
+        $status = request('status', 'active');
+        $featured = request('featured');
 
         $query = Topic::withCount('reviews')
-            ->with(['reviews' => fn($q) => $q->select('id', 'topic_id', 'rating')]);
+            ->with(['reviews' => fn($q) => $q->select('id', 'topic_id', 'rating')])
+            ->where('status', $status);
 
         if ($search) {
-            $query->where(fn($q) => $q->where('title', 'like', "%{$search}%")
-                                        ->orWhere('category', 'like', "%{$search}%"));
+            $query->where(function($q) use ($search) {
+                $q->whereFullText(['title', 'description'], $search)
+                  ->orWhere('title', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%");
+            });
         }
 
         if ($category) $query->where('category', $category);
+        if ($featured) $query->where('is_featured', true);
 
-        if ($sort === 'most_reviewed') $query->orderByDesc('reviews_count');
-        elseif ($sort === 'highest_rated') $query->withAvg('reviews', 'rating')->orderByDesc('reviews_avg_rating');
-        else $query->latest();
+        if ($rating) {
+            $query->whereHas('reviews', function($q) use ($rating) {
+                $q->select('topic_id')
+                  ->groupBy('topic_id')
+                  ->havingRaw('ROUND(AVG(rating)) = ?', [$rating]);
+            });
+        }
 
-        $topics = $query->paginate(9)->withQueryString();
+        switch ($sort) {
+            case 'most_reviewed':
+                $query->orderByDesc('reviews_count');
+                break;
+            case 'highest_rated':
+                $query->withAvg('reviews', 'rating')
+                      ->orderByDesc('reviews_avg_rating');
+                break;
+            case 'most_viewed':
+                $query->orderByDesc('view_count');
+                break;
+            case 'featured':
+                $query->where('is_featured', true)
+                      ->orderByDesc('created_at');
+                break;
+            default:
+                $query->latest();
+        }
+
+        $topics = $query->paginate(12)->withQueryString();
 
         return view('topics.index', compact('topics', 'search', 'category', 'sort'));
     }
@@ -66,6 +97,7 @@ class TopicController extends Controller
 
     public function show(Topic $topic)
     {
+        $topic->increment('view_count');
         $topic->load(['user', 'reviews.user', 'reviews.comments.user']);
         $averageRating = $topic->averageRating();
         return view('topics.show', compact('topic', 'averageRating'));
