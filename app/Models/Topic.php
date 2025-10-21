@@ -13,7 +13,7 @@ class Topic extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'title', 'category', 'description', 'image',
+        'user_id', 'title', 'category', 'description', 'content', 'image',
         'status', 'is_featured', 'view_count',
     ];
 

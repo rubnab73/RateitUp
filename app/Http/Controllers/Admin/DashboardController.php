@@ -8,9 +8,15 @@ use App\Models\Topic;
 use App\Models\Review;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'admin']);
+    }
+
     public function index()
     {
         $stats = [
@@ -29,19 +35,56 @@ class DashboardController extends Controller
 
     public function users()
     {
-        $users = User::paginate(15);
+        $users = User::withCount(['topics', 'reviews'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
         return view('admin.users.index', compact('users'));
+    }
+
+    public function editUser(User $user)
+    {
+        return view('admin.users.edit', compact('user'));
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'expertise_level' => ['required', 'string', 'in:beginner,intermediate,advanced,expert'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'website' => ['nullable', 'url', 'max:255'],
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('admin.users')
+            ->with('status', 'User updated successfully.');
     }
 
     public function topics()
     {
-        $topics = Topic::with('user')->withCount('reviews')->paginate(15);
+        $topics = Topic::with(['user', 'tags', 'reviews.comments'])
+            ->withCount(['reviews'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
+        $topics->each(function ($topic) {
+            $topic->total_comments = $topic->reviews->sum(function ($review) {
+                return $review->comments->count();
+            });
+        });
+        
         return view('admin.topics.index', compact('topics'));
     }
 
     public function reviews()
     {
-        $reviews = Review::with(['user', 'topic'])->paginate(15);
+        $reviews = Review::with(['user', 'topic'])
+            ->withCount('comments')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
         return view('admin.reviews.index', compact('reviews'));
     }
 
@@ -50,20 +93,49 @@ class DashboardController extends Controller
         if ($user->id !== auth()->id()) {
             $user->is_admin = !$user->is_admin;
             $user->save();
+            return back()->with('status', 'Admin status has been updated successfully.');
         }
+        return back()->with('error', 'You cannot modify your own admin status.');
+    }
 
-        return back()->with('status', 'Admin status updated successfully.');
+    public function editTopic(Topic $topic)
+    {
+        $topic->load(['user', 'tags']);
+        return view('admin.topics.edit', compact('topic'));
+    }
+
+    public function updateTopic(Request $request, Topic $topic)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'content' => 'required|string',
+            'status' => ['required', 'string', 'in:draft,published,archived'],
+        ]);
+
+        $topic->update($validated);
+
+        return redirect()->route('admin.topics')
+            ->with('status', 'Topic updated successfully.');
     }
 
     public function destroyTopic(Topic $topic)
     {
-        $topic->delete();
-        return back()->with('status', 'Topic deleted successfully.');
+        try {
+            $topic->delete();
+            return back()->with('status', 'Topic has been deleted successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete topic. Please try again.');
+        }
     }
 
     public function destroyReview(Review $review)
     {
-        $review->delete();
-        return back()->with('status', 'Review deleted successfully.');
+        try {
+            $review->delete();
+            return back()->with('status', 'Review has been deleted successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete review. Please try again.');
+        }
     }
 }

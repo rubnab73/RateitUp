@@ -25,8 +25,18 @@ class TopicController extends Controller
         $featured = request('featured');
 
         $query = Topic::withCount('reviews')
-            ->with(['reviews' => fn($q) => $q->select('id', 'topic_id', 'rating')])
-            ->where('status', $status);
+            ->with(['reviews' => fn($q) => $q->select('id', 'topic_id', 'rating')]);
+
+        // Status filtering
+        if (!Auth::user()?->is_admin) {
+            $query->where(function($q) {
+                $q->where('status', 'published')
+                  ->orWhere(function($q) {
+                      $q->whereIn('status', ['draft', 'archived'])
+                        ->where('user_id', Auth::id());
+                  });
+            });
+        }
 
         if ($search) {
             $query->where(function($q) use ($search) {
@@ -79,6 +89,8 @@ class TopicController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:100',
             'description' => 'nullable|string',
+            'content' => 'nullable|string',
+            'status' => ['required', 'string', 'in:draft,published,archived'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
@@ -89,6 +101,8 @@ class TopicController extends Controller
             'title' => $validated['title'],
             'category' => $validated['category'],
             'description' => $validated['description'] ?? null,
+            'content' => $validated['content'] ?? null,
+            'status' => $validated['status'],
             'image' => $path,
         ]);
 
@@ -117,6 +131,8 @@ class TopicController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:100',
             'description' => 'nullable|string',
+            'content' => 'nullable|string',
+            'status' => ['required', 'string', 'in:draft,published,archived'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
@@ -129,6 +145,8 @@ class TopicController extends Controller
             'title' => $validated['title'],
             'category' => $validated['category'],
             'description' => $validated['description'] ?? null,
+            'content' => $validated['content'] ?? null,
+            'status' => $validated['status'],
         ]);
 
         return redirect()->route('topics.show', $topic)->with('status', 'Topic updated successfully.');

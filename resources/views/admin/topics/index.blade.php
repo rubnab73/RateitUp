@@ -32,7 +32,10 @@
                                             <div class="ml-4">{{ $topic->user->name }}</div>
                                         </div>
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $topic->reviews_count ?? 0 }}</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                        <div>Reviews: {{ $topic->reviews_count ?? 0 }}</div>
+                                        <div class="text-xs text-gray-400">Comments: {{ $topic->comments_count ?? 0 }}</div>
+                                    </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $topic->created_at->format('M d, Y') }}</td>
                                     <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                         <a href="{{ route('admin.topics.edit', $topic) }}" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</a>

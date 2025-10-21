@@ -68,12 +68,23 @@ Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        // Dashboard
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Users Management
         Route::get('/users', [DashboardController::class, 'users'])->name('users');
-        Route::get('/topics', [DashboardController::class, 'topics'])->name('topics');
-        Route::get('/reviews', [DashboardController::class, 'reviews'])->name('reviews');
+        Route::get('/users/{user}/edit', [DashboardController::class, 'editUser'])->name('users.edit');
+        Route::patch('/users/{user}', [DashboardController::class, 'updateUser'])->name('users.update');
         Route::patch('/users/{user}/toggle-admin', [DashboardController::class, 'toggleAdmin'])->name('users.toggle-admin');
+        
+        // Topics Management
+        Route::get('/topics', [DashboardController::class, 'topics'])->name('topics');
+        Route::get('/topics/{topic}/edit', [DashboardController::class, 'editTopic'])->name('topics.edit');
+        Route::patch('/topics/{topic}', [DashboardController::class, 'updateTopic'])->name('topics.update');
         Route::delete('/topics/{topic}', [DashboardController::class, 'destroyTopic'])->name('topics.destroy');
+        
+        // Reviews Management
+        Route::get('/reviews', [DashboardController::class, 'reviews'])->name('reviews');
         Route::delete('/reviews/{review}', [DashboardController::class, 'destroyReview'])->name('reviews.destroy');
     });
 

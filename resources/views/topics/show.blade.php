@@ -41,9 +41,30 @@
 
                 <!-- Right Column: Description & Reviews -->
                 <div class="col-lg-8">
+                    <!-- Description Section -->
                     <div class="mb-4 p-3 bg-white rounded shadow-sm">
+                        <h5 class="mb-3 font-weight-bold">Description</h5>
                         <p class="mb-0">{{ $topic->description }}</p>
                     </div>
+
+                    <!-- Content Section -->
+                    @if($topic->content)
+                    <div class="mb-4 p-3 bg-white rounded shadow-sm">
+                        <h5 class="mb-3 font-weight-bold">Content</h5>
+                        <div class="content-area">
+                            {!! nl2br(e($topic->content)) !!}
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Status Badge -->
+                    @if($topic->status !== 'published')
+                    <div class="mb-4">
+                        <span class="badge {{ $topic->status === 'draft' ? 'bg-warning' : 'bg-secondary' }} text-dark p-2">
+                            Status: {{ ucfirst($topic->status) }}
+                        </span>
+                    </div>
+                    @endif
 
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <h4 class="fw-semibold mb-0">Reviews</h4>
