@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewReviewNotification extends Notification implements ShouldQueue
+class NewReviewNotification extends Notification
 {
     use Queueable;
 
@@ -39,8 +39,11 @@ class NewReviewNotification extends Notification implements ShouldQueue
             'review_id' => $this->review->id,
             'topic_id' => $this->review->topic_id,
             'topic_title' => $this->review->topic->title,
+            'topic_name' => $this->review->topic->title,
             'reviewer_name' => $this->review->user->name,
             'rating' => $this->review->rating,
+            'review_text' => str()->limit($this->review->review_text, 150),
+            'review_url' => route('reviews.show', $this->review->id)
         ];
     }
 

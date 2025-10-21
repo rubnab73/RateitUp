@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\Topic;
+use App\Notifications\NewReviewNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,6 +30,18 @@ class ReviewController extends Controller
     {
         $topicId = $request->query('topic_id');
         $topic = Topic::findOrFail($topicId);
+
+        // Check if user already reviewed this topic
+        $existingReview = Review::where('user_id', Auth::id())
+            ->where('topic_id', $topicId)
+            ->first();
+
+        if ($existingReview) {
+            return redirect()
+                ->route('reviews.edit', $existingReview)
+                ->with('status', 'You have already reviewed this topic. You can edit your review here.');
+        }
+
         return view('reviews.create', compact('topic'));
     }
 
@@ -37,6 +50,17 @@ class ReviewController extends Controller
      */
     public function store(Request $request)
     {
+        // Check for existing review first
+        $existingReview = Review::where('user_id', Auth::id())
+            ->where('topic_id', $request->input('topic_id'))
+            ->first();
+
+        if ($existingReview) {
+            return redirect()
+                ->route('reviews.edit', $existingReview)
+                ->with('error', 'You have already reviewed this topic. You can edit your review instead.');
+        }
+
         $validated = $request->validate([
             'topic_id' => ['required', 'exists:topics,id'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
@@ -49,6 +73,14 @@ class ReviewController extends Controller
             'rating' => $validated['rating'],
             'review_text' => $validated['review_text'],
         ]);
+
+        // Load the relationships needed for notification
+        $review->load(['topic.user', 'user']);
+
+        // Notify the topic owner (only if it's not the same user)
+        if ($review->user_id !== $review->topic->user_id) {
+            $review->topic->user->notify(new NewReviewNotification($review));
+        }
 
         return redirect()->route('topics.show', $review->topic_id)->with('status', 'Review posted.');
     }

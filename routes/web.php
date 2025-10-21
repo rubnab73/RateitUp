@@ -88,6 +88,8 @@ Route::middleware(['auth', 'admin'])
         
         // Reviews Management
         Route::get('/reviews', [DashboardController::class, 'reviews'])->name('reviews');
+        Route::get('/reviews/{review}/edit', [DashboardController::class, 'editReview'])->name('reviews.edit');
+        Route::patch('/reviews/{review}', [DashboardController::class, 'updateReview'])->name('reviews.update');
         Route::delete('/reviews/{review}', [DashboardController::class, 'destroyReview'])->name('reviews.destroy');
     });
 

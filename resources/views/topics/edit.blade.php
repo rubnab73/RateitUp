@@ -45,9 +45,14 @@
                     @error('status')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-4">
-                    <label class="form-label">Images</label>
-                    <x-image-gallery :images="$topic->images" :editable="true" />
-                    @error('images')<div class="text-danger small">{{ $message }}</div>@enderror
+                    <label class="form-label">Image</label>
+                    @if($topic->image)
+                        <div class="mb-2">
+                            <img src="{{ asset('storage/'.$topic->image) }}" alt="{{ $topic->title }}" class="img-thumbnail" style="max-height: 200px">
+                        </div>
+                    @endif
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                    @error('image')<div class="text-danger small">{{ $message }}</div>@enderror
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary">Save</button>

@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Topic;
 use App\Models\Review;
 use App\Models\Comment;
+use App\Models\ReviewModeration;
+use App\Notifications\ReviewModerationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -127,6 +129,32 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to delete topic. Please try again.');
         }
+    }
+
+    public function editReview(Review $review)
+    {
+        $review->load(['user', 'topic']);
+        return view('admin.reviews.edit', compact('review'));
+    }
+
+    public function updateReview(Request $request, Review $review)
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'string', 'in:flag,warning'],
+            'reason' => ['required', 'string', 'min:10'],
+        ]);
+
+        $moderation = ReviewModeration::create([
+            'review_id' => $review->id,
+            'admin_id' => auth()->id(),
+            'action' => $validated['action'],
+            'reason' => $validated['reason'],
+        ]);
+
+        $review->user->notify(new ReviewModerationNotification($moderation));
+
+        return redirect()->route('admin.reviews')
+            ->with('status', 'Review moderation notice sent successfully.');
     }
 
     public function destroyReview(Review $review)

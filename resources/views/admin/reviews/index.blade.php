@@ -23,7 +23,7 @@
                                 @foreach($reviews as $review)
                                 <tr>
                                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
-                                        <div class="font-medium text-gray-900">{{ $review->title }}</div>
+                                        <div class="font-medium text-gray-900">{{ Str::limit($review->review_text, 50) }}</div>
                                     </td>
                                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                         <div class="flex items-center">

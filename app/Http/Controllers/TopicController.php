@@ -114,6 +114,7 @@ class TopicController extends Controller
 
     public function show(Topic $topic)
     {
+        $this->authorize('view', $topic);
         $topic->increment('view_count');
         $topic->load(['user', 'reviews.user', 'reviews.comments.user']);
         $averageRating = $topic->averageRating();

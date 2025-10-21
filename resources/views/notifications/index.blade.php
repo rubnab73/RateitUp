@@ -34,19 +34,41 @@
                                 <div class="flex items-center justify-between p-4 {{ $notification->read_at ? 'bg-white' : 'bg-blue-50' }} border rounded-lg">
                                     <div class="flex-1">
                                         @if($notification->type === 'App\\Notifications\\NewReviewNotification')
-                                            <p class="font-medium">
-                                                {{ $notification->data['reviewer_name'] }} left a {{ $notification->data['rating'] }}-star review on
-                                                <a href="{{ route('topics.show', $notification->data['topic_id']) }}" class="text-indigo-600 hover:text-indigo-900">
-                                                    {{ $notification->data['topic_title'] }}
-                                                </a>
-                                            </p>
+                                            <div>
+                                                <p class="font-medium">
+                                                    {{ $notification->data['reviewer_name'] }} left a {{ $notification->data['rating'] }}-star review on
+                                                    <a href="{{ route('reviews.show', $notification->data['review_id']) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                        {{ $notification->data['topic_title'] }}
+                                                    </a>
+                                                </p>
+                                                <p class="mt-1 text-gray-600 text-sm">
+                                                    "{{ $notification->data['review_text'] }}"
+                                                </p>
+                                            </div>
                                         @elseif($notification->type === 'App\\Notifications\\NewCommentNotification')
-                                            <p class="font-medium">
-                                                {{ $notification->data['commenter_name'] }} commented on your review for
-                                                <a href="{{ route('topics.show', $notification->data['topic_id']) }}" class="text-indigo-600 hover:text-indigo-900">
-                                                    {{ $notification->data['topic_title'] }}
-                                                </a>
-                                            </p>
+                                            <div>
+                                                <p class="font-medium">
+                                                    {{ $notification->data['commenter_name'] }} commented on your review for
+                                                    <a href="{{ route('reviews.show', $notification->data['review_id']) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                        {{ $notification->data['topic_title'] }}
+                                                    </a>
+                                                </p>
+                                                <p class="mt-1 text-gray-600 text-sm">
+                                                    "{{ $notification->data['comment_text'] }}"
+                                                </p>
+                                            </div>
+                                        @elseif($notification->type === 'App\\Notifications\\ReviewModerationNotification')
+                                            <div>
+                                                <p class="font-medium">
+                                                    Your review has been flagged for moderation
+                                                    <a href="{{ route('reviews.show', $notification->data['review_id']) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                        (View Review)
+                                                    </a>
+                                                </p>
+                                                <p class="mt-1 text-gray-600 text-sm">
+                                                    Reason: {{ $notification->data['reason'] }}
+                                                </p>
+                                            </div>
                                         @elseif($notification->type === 'App\\Notifications\\NewFollowerNotification')
                                             <p class="font-medium">
                                                 <a href="{{ route('profile.show', $notification->data['follower_id']) }}" class="text-indigo-600 hover:text-indigo-900">

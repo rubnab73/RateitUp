@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\Review;
+use App\Notifications\NewCommentNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,7 +49,15 @@ class CommentController extends Controller
             'comment_text' => $validated['comment_text'],
         ]);
 
-        return redirect()->route('reviews.show', $comment->review_id)->with('status', 'Comment added.');
+        // Load the relationships needed for notification
+        $comment->load(['review.user', 'user']);
+
+        // Notify the review owner (only if it's not the same user)
+        if ($comment->user_id !== $comment->review->user_id) {
+            $comment->review->user->notify(new NewCommentNotification($comment));
+        }
+
+        return redirect()->route('reviews.show', $comment->review_id)->with('status', 'Comment added');
     }
 
     /**

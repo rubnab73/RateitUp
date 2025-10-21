@@ -4,14 +4,16 @@
             <h2 class="fw-bold text-primary mb-0">{{ $topic->title }}</h2>
             <div class="d-flex gap-2 flex-wrap">
                 @auth
-                    @if(auth()->id() === $topic->user_id)
+                    @can('update', $topic)
                         <a href="{{ route('topics.edit', $topic) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                    @endcan
+                    @can('delete', $topic)
                         <form method="POST" action="{{ route('topics.destroy', $topic) }}" onsubmit="return confirm('Delete this topic?')">
                             @csrf
                             @method('DELETE')
                             <button class="btn btn-outline-danger btn-sm">Delete</button>
                         </form>
-                    @endif
+                    @endcan
                 @endauth
             </div>
         </div>
@@ -26,28 +28,12 @@
             <div class="row g-4">
                 <!-- Left Column: Image & Info -->
                 <div class="col-lg-4">
-                    @if($topic->images->isNotEmpty())
-                        <!-- Featured Image -->
-                        @if($featuredImage = $topic->images->where('order', 1)->first())
-                            <div class="mb-3">
-                                <img src="{{ asset('storage/'.$featuredImage->path) }}" 
-                                     class="img-fluid rounded shadow-sm" 
-                                     alt="{{ $featuredImage->alt_text ?? $topic->title }}">
-                            </div>
-                        @endif
-
-                        <!-- Additional Images -->
-                        @if($topic->images->where('order', '>', 1)->isNotEmpty())
-                            <div class="row g-2 mb-3">
-                                @foreach($topic->images->where('order', '>', 1) as $image)
-                                    <div class="col-6">
-                                        <img src="{{ asset('storage/'.$image->path) }}" 
-                                             class="img-fluid rounded shadow-sm" 
-                                             alt="{{ $image->alt_text ?? $topic->title }}">
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
+                    @if($topic->image)
+                        <div class="mb-3">
+                            <img src="{{ asset('storage/'.$topic->image) }}" 
+                                 class="img-fluid rounded shadow-sm" 
+                                 alt="{{ $topic->title }}">
+                        </div>
                     @endif
                     <div class="p-3 bg-light rounded shadow-sm">
                         <p class="mb-2"><strong>Category:</strong> <span class="text-secondary">{{ ucfirst($topic->category) }}</span></p>
@@ -139,8 +125,9 @@
                                     <div>
                                         <strong class="text-primary">{{ $review->user->name }}</strong>
                                         <span class="badge bg-warning text-dark ms-2">Rating: {{ $review->rating }}/5</span>
+                                        <span class="ms-2 text-muted small">({{ $review->comments->count() }} comments)</span>
                                     </div>
-                                    <a href="{{ route('reviews.show', $review) }}" class="small text-decoration-none">Open</a>
+                                    <a href="{{ route('reviews.show', $review) }}" class="small text-decoration-none">Read & Comment</a>
                                 </div>
                                 <p class="mt-2 mb-0">{{ $review->review_text }}</p>
                             </div>

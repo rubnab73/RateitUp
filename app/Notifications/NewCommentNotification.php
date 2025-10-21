@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewCommentNotification extends Notification implements ShouldQueue
+class NewCommentNotification extends Notification
 {
     use Queueable;
 
@@ -39,7 +39,10 @@ class NewCommentNotification extends Notification implements ShouldQueue
             'review_id' => $this->comment->review_id,
             'topic_id' => $this->comment->review->topic_id,
             'topic_title' => $this->comment->review->topic->title,
+            'topic_name' => $this->comment->review->topic->title,
             'commenter_name' => $this->comment->user->name,
+            'comment_text' => str()->limit($this->comment->comment_text, 150),
+            'comment_url' => route('reviews.show', $this->comment->review_id)
         ];
     }
 
