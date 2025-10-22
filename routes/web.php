@@ -10,21 +10,21 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-// --------------------
+
 // Public Routes
-// --------------------
+
 Route::get('/', [TopicController::class, 'index'])->name('home');
 
-// --------------------
+
 // Dashboard (for logged in users)
-// --------------------
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// --------------------
+
 // Authenticated User Routes
-// --------------------
+
 Route::middleware('auth')->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -39,24 +39,24 @@ Route::middleware('auth')->group(function () {
     Route::delete('/notifications', [NotificationController::class, 'clearAll'])->name('notifications.clearAll');
 });
 
-// --------------------
+
 // Public Resource Routes
-// --------------------
+
 Route::resource('topics', TopicController::class);
 Route::resource('reviews', ReviewController::class);
 Route::resource('comments', CommentController::class);
 
-// --------------------
+
 // Following System
-// --------------------
+
 Route::post('/users/{user}/follow', [FollowerController::class, 'store'])->name('users.follow');
 Route::delete('/users/{user}/follow', [FollowerController::class, 'destroy'])->name('users.unfollow');
 Route::get('/users/{user}/followers', [FollowerController::class, 'followers'])->name('users.followers');
 Route::get('/users/{user}/following', [FollowerController::class, 'following'])->name('users.following');
 
-// --------------------
+
 // Tags
-// --------------------
+
 Route::resource('tags', TagController::class);
 Route::post('/topics/{topic}/tags', [TagController::class, 'attachTag'])->name('topics.tags.attach');
 Route::delete('/topics/{topic}/tags/{tag}', [TagController::class, 'detachTag'])->name('topics.tags.detach');
@@ -64,9 +64,9 @@ Route::delete('/topics/{topic}/tags/{tag}', [TagController::class, 'detachTag'])
 // Image Management
 
 
-// --------------------
+
 // Admin Routes
-// --------------------
+
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
