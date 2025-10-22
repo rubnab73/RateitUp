@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Topic extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'title', 'category', 'description', 'image',
+        'user_id', 'title', 'category', 'description', 'content',
+        'status', 'is_featured', 'view_count', 'image'
     ];
 
     public function user(): BelongsTo
@@ -29,5 +31,10 @@ class Topic extends Model
     {
         $avg = $this->reviews()->avg('rating');
         return $avg ? round((float) $avg, 2) : 0.0;
+    }
+
+    public function tags(): MorphToMany
+    {
+        return $this->morphToMany(Tag::class, 'taggable')->withTimestamps();
     }
 }

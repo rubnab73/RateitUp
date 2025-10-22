@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Review on {{ $review->topic->title }}</h2>
+        <h2 class="font-bold text-2xl sm:text-3xl text-black dark:text-white leading-tight">Review on {{ $review->topic->title }}</h2>
             <div class="d-flex gap-2">
                 @auth
                     @if(auth()->id() === $review->user_id)
